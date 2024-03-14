@@ -67,14 +67,17 @@ jobs:
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
-      - name: Upload to S3
-        uses: shallwefootball/s3-upload-action@master
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
-          source_dir: 'target/${{ matrix.target }}/release/${{ matrix.exe }}'
-          destination_dir: 'rutty'
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+      - name: Upload S3 Bucket
+        run: |
+          aws s3 rm s3://${{ vars.AWS_S3_BUCKET }}/rutty/target/${{ matrix.target }}/release  --recursive
+          aws s3 cp target/${{ matrix.target }}/release/${{ matrix.exe }} s3://${{ vars.AWS_S3_BUCKET }}/rutty/target/${{ matrix.target }}/release  --recursive
 
       - name: Zip Release
         uses: TheDoctor0/zip-release@0.7.5
