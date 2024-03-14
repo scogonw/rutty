@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 env:
+  NODE_ENV: production
   CARGO_TERM_COLOR: always
 
 permissions:
@@ -29,6 +30,17 @@ jobs:
             
     steps:
       - uses: actions/checkout@v4
+
+      - name: Yarn Install
+        run: |
+          cd web;
+          yarn --production=false;
+          yarn build --dist-dir dist/release
+
+      - name: Copy to Backend
+        run: |
+          cp -r web/dist/$(TARGET) backend/static
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
