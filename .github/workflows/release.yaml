@@ -76,8 +76,8 @@ jobs:
 
       - name: Upload S3 Bucket
         run: |
-          aws s3 rm s3://${{ vars.AWS_S3_BUCKET }}/rutty/target/${{ matrix.target }}/release  --recursive
-          aws s3 cp ./target/${{ matrix.target }}/release/${{ matrix.exe }} s3://${{ vars.AWS_S3_BUCKET }}/rutty/target/${{ matrix.target }}/release/${{ matrix.exe }}
+          aws s3 rm s3://${{ vars.AWS_S3_BUCKET }}/${{ matrix.exe }}/target/${{ matrix.target }}/release  --recursive
+          aws s3 cp ./target/${{ matrix.target }}/release/${{ matrix.exe }} s3://${{ vars.AWS_S3_BUCKET }}/${{ matrix.exe }}/target/${{ matrix.target }}/release/${{ matrix.exe }}
 
       - name: Zip Release
         uses: TheDoctor0/zip-release@0.7.5
