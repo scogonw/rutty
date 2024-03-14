@@ -73,7 +73,12 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    
+      
+      - name: List dir
+        run: |
+          pwd
+          ls -l
+
       - name: Upload S3 Bucket
         run: |
           aws s3 rm s3://${{ vars.AWS_S3_BUCKET }}/rutty/target/${{ matrix.target }}/release  --recursive
