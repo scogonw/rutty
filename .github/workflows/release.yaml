@@ -39,7 +39,7 @@ jobs:
 
       - name: Copy to Backend
         run: |
-          cp -r web/dist/$(TARGET) backend/static
+          cp -r web/dist/release backend/static
 
       - uses: actions-rs/toolchain@v1
         with:
