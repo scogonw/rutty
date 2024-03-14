@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Cross build for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: mipsel-unknown-linux-musl
+            exe: rutty
+            cross: true
+            args: --best --lzma
+            strip: false
+            
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.71
+          default: true
+      
+      - name: Install OpenSSL
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install pkg-config libssl-dev
+
+      # Cross build
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install --version 0.2.5 cross
+      - name: Run tests
+        if: matrix.cross
+        run: cross test --release --target ${{ matrix.target }} --verbose --no-default-features --features client
+      - name: Build release
+        if: matrix.cross
+        run: cross build --release --target ${{ matrix.target }} --features client --no-default-features
+
+      - name: Compress binaries
+        uses: svenstaro/upx-action@v2
+        with:
+          files: |
+              target/${{ matrix.target }}/release/${{ matrix.exe }}
+          args: ${{ matrix.args }}
+          strip: ${{ matrix.strip }}
+      - name: Zip Release
+        uses: TheDoctor0/zip-release@0.6.1
+        with:
+          type: zip
+          filename: rutty-${{ matrix.target }}.zip
+          directory: target/${{ matrix.target }}/release/
+          path: ${{ matrix.exe }}
+      - name: Publish
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: target/${{ matrix.target }}/release/rutty-${{ matrix.target }}.zip
+          generate_release_notes: true
+          draft: true
