@@ -66,17 +66,28 @@ jobs:
               target/${{ matrix.target }}/release/${{ matrix.exe }}
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
+
+      - name: Upload to S3
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
+          source_dir: 'target/${{ matrix.target }}/release/${{ matrix.exe }}'
+          destination_dir: 'rutty'
+
       - name: Zip Release
-        uses: TheDoctor0/zip-release@0.6.1
+        uses: TheDoctor0/zip-release@0.7.5
         with:
           type: zip
           filename: rutty-${{ matrix.target }}.zip
           directory: target/${{ matrix.target }}/release/
           path: ${{ matrix.exe }}
+
       - name: Publish
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: target/${{ matrix.target }}/release/rutty-${{ matrix.target }}.zip
           generate_release_notes: true
-          draft: true
+          draft: false
